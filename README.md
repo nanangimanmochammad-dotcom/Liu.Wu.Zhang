@@ -1,47 +1,58 @@
 # STM32 Super Mario Parkour & UI System 🍄
 
-这是一个基于 **STM32F446RE** 和 **LCD1602** 的嵌入式娱乐系统。不仅包含基础的信息显示，还内置了一个基于自定义字符的**超级玛丽跑酷小游戏**。
+An embedded entertainment system based on **STM32F446RE** and **LCD1602**. It features a robust UI state machine and a custom character-based **Super Mario Parkour Game**.
 
-## ✨ 功能特性
+## ✨ Features
 
-本项目实现了一个完整的 UI 状态机，包含以下模式：
-* **🌊 Splash Screen**: 滚动欢迎界面
-* **ℹ️ Info Mode**: 显示实时系统信息（日期/学号等）
-* **🎨 ASCII Art**: 字符画展示 (Peace/Love/Code)
-* **🎬 Animation**: 巨型马里奥动画 (使用 3x2 字符拼接)
-* **🎮 Mini Game**: **超级玛丽跑酷游戏** (通过按键跳跃躲避障碍)
+The project implements a comprehensive UI state machine with the following modes:
+* **🌊 Splash Screen**: Scrolling welcome interface.
+* **ℹ️ Info Mode**: Real-time system status display.
+* **🎨 ASCII Art**: Graphic rendering using characters.
+* **🎬 Animation**: Large-scale Mario animation composed of 3x2 characters.
+* **🎮 Mini Game**: **Super Mario Parkour** (jump to avoid obstacles).
 
-## 🛠️ 硬件清单
+## 🛠️ Hardware Requirements
 
-* **MCU**: STM32F446RE (Nucleo-64 开发板)
-* **Display**: LCD1602 (16x2 字符液晶屏)
-* **Input**: 蓝色按钮 (User Button) 用于游戏控制
+* **MCU**: STM32F446RE (Nucleo-64 Board)
+* **Display**: LCD1602 (16x2 Character LCD)
+* **Input**: User Button (Blue)
 * **Toolchain**: STM32CubeIDE
 
-## 📂 项目结构说明
+## 📂 Project Structure
 
 ```text
 MES204_TC/
 ├── Core/
-│   ├── Inc/              # 头文件 (main.h, ui_manager.h 等)
-│   ├── Src/              # 源代码 (main.c, ui_manager.c 等)
-│   └── Startup/          # 启动文件
-├── Drivers/              # STM32 HAL 库文件
-├── MES204_TC.ioc         # STM32CubeMX 硬件配置文件
-└── MES204_TC.launch      # 调试启动配置
+│   ├── Inc/                  # Header files
+│   │   ├── main.h
+│   │   ├── dino_game.h       # Game logic definitions
+│   │   ├── lcd_driver.h      # LCD1602 driver definitions
+│   │   └── ui_manager.h      # UI state machine headers
+│   ├── Src/                  # Source code
+│   │   ├── main.c            # Main entry point
+│   │   ├── dino_game.c       # Mario/Dino game implementation
+│   │   ├── lcd_driver.c      # Low-level LCD control functions
+│   │   └── ui_manager.c      # UI logic handling
+│   └── Startup/              # Startup code
+├── Drivers/                  # STM32 HAL Library
+├── MES204_TC.ioc             # STM32CubeMX Configuration
+└── MES204_TC.launch          # Debug Configuration
+```
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-1.  **克隆/下载** 本仓库到本地。
-2.  打开 **STM32CubeIDE**。
-3.  选择 `File` -> `Import` -> `Existing Projects into Workspace`。
-4.  选择本项目所在的文件夹导入。
-5.  **编译 (Build)** 项目 (如果报错提示缺少 Drivers，请打开 .ioc 文件并在 Device Configuration Tool 中点击生成代码)。
-6.  **调试 (Debug)**: 连接开发板，点击调试按钮即可烧录运行。
+1.  **Clone/Download** this repository.
+2.  Open **STM32CubeIDE**.
+3.  Go to `File` -> `Import` -> `Existing Projects into Workspace`.
+4.  Select the project folder.
+5.  **Build** the project (If you see errors about missing drivers, open the `.ioc` file and generate code).
+6.  **Debug**: Connect your board and click the Debug button to flash and run.
 
-## 🎮 游戏操作
-* **按键**: 蓝色按钮 (User Button) 用于 **跳跃** 和 **开始游戏**。
-* **目标**: 控制马里奥避开障碍物，坚持时间越长分数越高！
+## 🎮 Game Controls
+
+* **Button**: Blue User Button
+* **Action**: Press to **Jump** / **Start Game**.
+* **Objective**: Avoid obstacles and survive as long as possible for a high score!
 
 ---
 Created with ❤️ (https://github.com/nanangimanmochammad-dotcom)
