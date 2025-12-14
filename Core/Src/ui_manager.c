@@ -11,18 +11,18 @@
 #include <stdlib.h> // for rand()
 
 // ==========================================
-// 全局变量与状态管理
+// Global variables and state management
 // ==========================================
 
-static UI_State_t currentState = STATE_SPLASH; // 初始状态
+static UI_State_t currentState = STATE_SPLASH; // original state
 static uint8_t cgram_loaded_type = 0; // 0: Dirty/Anim, 1: Art, 2: Game
 
-// Splash 滚动变量
+// Splash Rolling variable
 static uint8_t splashFrame = 0;
 static uint32_t lastSplashTick = 0;
 #define SPLASH_FRAME_MS 400
 
-// Game 变量
+// Game variable
 typedef enum { GAME_WAIT, GAME_PLAY, GAME_OVER } GameSubState_t;
 static GameSubState_t gameSubState = GAME_WAIT;
 static uint32_t gameScore = 0;
@@ -35,26 +35,26 @@ static int8_t obstacleX = 16;
 static uint32_t frameDelay_ms = 120;
 #define JUMP_DURATION 4
 
-// Animation 变量 (新增)
+// Animation Variable (Newly added
 typedef enum {
     ANIM_RUN_RIGHT,
     ANIM_SLIP_RIGHT,
     ANIM_RUN_LEFT,
     ANIM_SLIP_LEFT,
-    ANIM_DONE // 动画播放完毕
+    ANIM_DONE // The animation has ended
 } AnimSubState_t;
 
 static AnimSubState_t animSubState = ANIM_RUN_RIGHT;
 static uint32_t lastAnimTick = 0;
-static int animLoopIdx = 0;   // 对应 Arduino 中的变量 'a'
-static int animFrameStep = 0; // 对应每个动作内部的 step (0-3 or 0-2)
-#define ANIM_SPEED_MS 300     // 对应 Arduino int x = 300;
+static int animLoopIdx = 0;   // Corresponding to the variable 'a' in Arduino
+static int animFrameStep = 0; // Corresponding to the step (0-3 or 0-2) within each action
+#define ANIM_SPEED_MS 300     // Corresponding to Arduino int x = 300;
 
 // ==========================================
-// UI 资源定义 (字模)
+// UI Resource Definition (Font)
 // ==========================================
 
-// --- Art 模式资源 (原有) ---
+// --- Art Mode resources (original) ---
 const uint8_t peace_L[8] = {0x01, 0x07, 0x09, 0x11, 0x15, 0x0B, 0x05, 0x03};
 const uint8_t peace_R[8] = {0x10, 0x1C, 0x12, 0x11, 0x15, 0x1A, 0x14, 0x18};
 const uint8_t love_L[8] = {0x06, 0x0F, 0x1F, 0x1F, 0x0F, 0x07, 0x03, 0x01};
@@ -62,16 +62,16 @@ const uint8_t love_R[8] = {0x0C, 0x1E, 0x1F, 0x1F, 0x1E, 0x1C, 0x18, 0x10};
 const uint8_t code_L[8] = {0x02, 0x06, 0x0C, 0x18, 0x0C, 0x06, 0x02, 0x00};
 const uint8_t code_R[8] = {0x08, 0x0C, 0x06, 0x03, 0x06, 0x0C, 0x08, 0x00};
 
-// --- Game 模式资源 (原有) ---
+// --- Game Mode resources (original) ---
 const uint8_t dino_run1[8] = {0x0C, 0x0C, 0x0E, 0x0E, 0x1F, 0x0E, 0x0A, 0x0A};
 const uint8_t dino_run2[8] = {0x0C, 0x0C, 0x0E, 0x0E, 0x1F, 0x0E, 0x12, 0x12};
 const uint8_t dino_jump[8] = {0x0C, 0x0C, 0x0E, 0x0E, 0x1F, 0x1F, 0x08, 0x04};
 const uint8_t obstacle[8] = {0x00, 0x04, 0x05, 0x15, 0x1F, 0x04, 0x04, 0x04};
 const uint8_t ground[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF};
 
-// --- Animation 模式资源 (从 Arduino 移植) ---
-// 注意：Arduino 的 Bxxxxxx 已转换为 C 标准二进制 0bxxxxxx
-// 数据完全保持一致，未做修改。
+// --- Animation mode resources (ported from Arduino) ---
+// Note: Arduino's Bxxxxxx has been converted to C standard binary 0bxxxxxx
+// The data remains completely consistent and has not been modified.
 
 // standing man (stepA)
 const uint8_t stepA1[8] = {0b00011,0b00111,0b00111,0b00111,0b00111,0b00001,0b00011,0b00111};
@@ -174,12 +174,12 @@ const uint8_t slipF5[8] = {0b00000,0b00000,0b00000,0b00000,0b00000,0b11000,0b110
 const uint8_t slipF6[8] = {0b00000,0b00000,0b10000,0b11000,0b11000,0b10000,0b00000,0b10000};
 
 // ==========================================
-// 逻辑实现部分
+// Logic implementation part
 // ==========================================
 
-// --- 辅助函数 ---
+// --- auxiliary function ---
 
-// 动态调速
+// Dynamic speed regulation
 static void Update_Speed(void) {
     uint32_t newDelay = 120 - (gameScore / 4) * 10;
     if (newDelay < 60) newDelay = 60;
@@ -207,14 +207,14 @@ static void Load_Game_Assets(void) {
     cgram_loaded_type = 2;
 }
 
-// 动画专用渲染辅助：加载6个字符并绘制到指定列
-// 注意：col_start 对应 Arduino 代码中 setCursor 的第一个参数
+//Animation-specific rendering assistance: Load 6 characters and draw them to the specified column
+// Note: col_start corresponds to the first parameter of setCursor in the Arduino code
 // Arduino: lcd.setCursor(col, row) -> STM32: LCD_SetCursor(row, col)
 // Arduino: lcd.write(1..6) -> STM32: LCD_WriteChar(0..5)
 static void Render_Anim_Frame(uint8_t col1, uint8_t col2, uint8_t col3,
                               const uint8_t* c1, const uint8_t* c2, const uint8_t* c3,
                               const uint8_t* c4, const uint8_t* c5, const uint8_t* c6) {
-    // 1. 加载字模到 CGRAM 0-5
+    // 1. Load the font model to CGRAM 0-5
     LCD_CreateCustomChar(0, (uint8_t*)c1);
     LCD_CreateCustomChar(1, (uint8_t*)c2);
     LCD_CreateCustomChar(2, (uint8_t*)c3);
@@ -222,22 +222,22 @@ static void Render_Anim_Frame(uint8_t col1, uint8_t col2, uint8_t col3,
     LCD_CreateCustomChar(4, (uint8_t*)c5);
     LCD_CreateCustomChar(5, (uint8_t*)c6);
 
-    // 2. 清屏 (Arduino代码每帧都清屏)
+    // 2. Clear the screen (Clear the screen for every frame of Arduino code)
     LCD_Clear();
 
-    // 3. 绘制
-    // 列1
+    // 3.draw
+    // Table 1
     if(col1 < 16) { LCD_SetCursor(1, col1); LCD_WriteChar(0); } // Bottom
     if(col1 < 16) { LCD_SetCursor(0, col1); LCD_WriteChar(1); } // Top
-    // 列2
+    // Table 2
     if(col2 < 16) { LCD_SetCursor(1, col2); LCD_WriteChar(2); }
     if(col2 < 16) { LCD_SetCursor(0, col2); LCD_WriteChar(3); }
-    // 列3
+    // Table 3
     if(col3 < 16) { LCD_SetCursor(1, col3); LCD_WriteChar(4); }
     if(col3 < 16) { LCD_SetCursor(0, col3); LCD_WriteChar(5); }
 }
 
-// 非阻塞按键检测
+// Non-blocking key detection
 static uint8_t Check_Button_Event(void) {
     static uint32_t lastBtnTick = 0;
     static uint8_t btnState = 1;
@@ -257,7 +257,7 @@ static uint8_t Check_Button_Event(void) {
 }
 
 // ==========================================
-// 游戏逻辑
+// game logic
 // ==========================================
 
 void Game_Reset(void) {
@@ -327,18 +327,18 @@ void Game_Render(void) {
 }
 
 // ==========================================
-// 动画状态机逻辑 (核心移植部分)
+// Animation state machine logic (Core Transplantation part)
 // ==========================================
 
 void Animation_Reset(void) {
     animSubState = ANIM_RUN_RIGHT;
     animLoopIdx = 0; // 'a' in Arduino
     animFrameStep = 0;
-    cgram_loaded_type = 0; // 标记CGRAM为"Dirty"，退出后需重载
+    cgram_loaded_type = 0; // Mark CGRAM as "Dirty"，Reloading is required after exiting
 }
 
 void Animation_Update(void) {
-    // 只有时间到了才更新下一帧
+    // The next frame will only be updated when the time is up
     if (HAL_GetTick() - lastAnimTick < ANIM_SPEED_MS) return;
     lastAnimTick = HAL_GetTick();
 
@@ -349,7 +349,7 @@ void Animation_Update(void) {
         // 1. Running Right (loop a: 0 -> 11, step 4)
         // ------------------------------------------------
         case ANIM_RUN_RIGHT:
-            // 内部有4帧动画 (step 0-3)
+            // There are 4 frames of animation inside (step 0-3)
             if (animFrameStep == 0) {
                 // b(a+1), c(a+2), d(a+3)
                 Render_Anim_Frame(a+1, a+2, a+3, stepB1, stepB2, stepB3, stepB4, stepB5, stepB6);
@@ -441,14 +441,14 @@ void Animation_Update(void) {
             animFrameStep++;
             if (animFrameStep > 2) {
                 animFrameStep = 0;
-                animSubState = ANIM_DONE; // 标记单次循环完成
+                animSubState = ANIM_DONE; // Mark the completion of a single loop
             }
             break;
 
         case ANIM_DONE:
-            // 动画播放完毕，重新开始循环或等待按键
-            // 按照需求逻辑：RunR -> SlipR -> RunL -> SlipL -> (Loop or Wait)
-            // 这里重置为 RunR 保持循环播放，直到用户按下按钮
+            // When the animation finishes playing, restart the loop or wait for the button to be pressed
+            // According to the logic of demand：RunR -> SlipR -> RunL -> SlipL -> (Loop or Wait)
+            // Here, reset to RunR to keep the loop playing until the user presses the button
             animSubState = ANIM_RUN_RIGHT;
             animLoopIdx = 0;
             break;
@@ -456,7 +456,7 @@ void Animation_Update(void) {
 }
 
 // ==========================================
-// 对外接口
+// external interface
 // ==========================================
 
 void UI_Init(void) {
@@ -504,7 +504,7 @@ void UI_Update(RTC_HandleTypeDef *hrtc) {
             if (btnPressed && splashFrame >= 15) {
                 currentState = STATE_INFO;
                 splashFrame = 0;
-                cgram_loaded_type = 0;//强制重新加载
+                cgram_loaded_type = 0;//Forced reload
                 LCD_Clear();
             }
             break;
@@ -541,8 +541,8 @@ void UI_Update(RTC_HandleTypeDef *hrtc) {
             Load_Art_Assets();
 
             if (btnPressed) {
-                currentState = STATE_ANIMATION; // 修改：跳转到 Animation
-                Animation_Reset(); // 重置动画状态
+                currentState = STATE_ANIMATION; // Modify: Jump to Animation
+                Animation_Reset(); // Reset the animation status
                 cgram_loaded_type = 0;
                 LCD_Clear();
                 return;
@@ -562,7 +562,7 @@ void UI_Update(RTC_HandleTypeDef *hrtc) {
 
         // ---------------- STATE: ANIMATION (NEW) ----------------
         case STATE_ANIMATION:
-            // 动画状态不需要 Load_Asset 预加载，因为每帧都在变
+            // The animation state is not required Load_Asset Preload because each frame is changing
 
             if (btnPressed) {
                 currentState = STATE_GAME;
@@ -577,7 +577,7 @@ void UI_Update(RTC_HandleTypeDef *hrtc) {
 
         // ---------------- STATE: GAME ----------------
         case STATE_GAME:
-            Load_Game_Assets(); // 确保加载游戏字模(因为Animation破坏了CGRAM)
+            Load_Game_Assets(); // Make sure to load the game font (as Animation has disrupted the CGRAM)
 
             switch (gameSubState) {
                 case GAME_WAIT:
@@ -609,7 +609,7 @@ void UI_Update(RTC_HandleTypeDef *hrtc) {
                     LCD_Print("GAME OVER!");
 
                     if (btnPressed) {
-                        currentState = STATE_INFO; // 循环回 INFO
+                        currentState = STATE_INFO; // Loop back to INFO
                         LCD_Clear();
                     }
                     break;
@@ -617,3 +617,4 @@ void UI_Update(RTC_HandleTypeDef *hrtc) {
             break;
     }
 }
+
