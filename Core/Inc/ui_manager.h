@@ -13,17 +13,19 @@
 
 // 定义系统状态
 typedef enum {
-    STATE_SPLASH,    // 滚动显示
-    STATE_INFO,      // 显示学号日期
-    STATE_ART,       // 显示图案 (Peace/Love/Code)
-    STATE_ANIMATION, // [新增] 巨型马里奥动画 (3x2 字符)
-    STATE_GAME       // 超级玛丽跑酷游戏
+    STATE_SPLASH,    // scrolling display
+
+    STATE_INFO,      // Display the student number and date
+    STATE_ART,       // Broken Image (Peace/Love/Code)
+    STATE_ANIMATION, // [New Addition] Giant Mario Animation (3x2 characters)
+    STATE_GAME       // Super Mario Parkour game
 } UI_State_t;
 
-// 初始化 UI 资源
+// Initialize UI resources
 void UI_Init(void);
 
-// 状态机处理函数 (放在主循环里，需传入 RTC 句柄)
+//State machine handling function (placed in the main loop, an RTC handle needs to be passed in)
 void UI_Update(RTC_HandleTypeDef *hrtc);
 
 #endif /* INC_MANAGER_H_ */
+
