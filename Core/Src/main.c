@@ -94,7 +94,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  __HAL_RCC_GPIOA_CLK_ENABLE();   // If it has already been opened in MX_GPIO_Init, it can be omitted
+  __HAL_RCC_GPIOA_CLK_ENABLE();   
   __HAL_RCC_GPIOB_CLK_ENABLE();
   /* First, lower all RS/EN/D4 to D7 to avoid fluctuations */
   HAL_GPIO_WritePin(GPIOA, LCD_RS_Pin|LCD_EN_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
@@ -354,4 +354,5 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
 
