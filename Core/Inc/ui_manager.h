@@ -17,7 +17,7 @@ typedef enum {
 
     STATE_INFO,      // Display the student number and date
     STATE_ART,       // Broken Image (Peace/Love/Code)
-    STATE_ANIMATION, // [New Addition] Giant Mario Animation (3x2 characters)
+    STATE_ANIMATION, // Giant Mario Animation (3x2 characters)
     STATE_GAME       // Super Mario Parkour game
 } UI_State_t;
 
@@ -28,5 +28,6 @@ void UI_Init(void);
 void UI_Update(RTC_HandleTypeDef *hrtc);
 
 #endif /* INC_MANAGER_H_ */
+
 
 
